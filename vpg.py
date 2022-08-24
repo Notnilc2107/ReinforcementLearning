@@ -4,57 +4,68 @@ from torch.distributions.normal import Normal
 from collections import deque
 import numpy as np
 
+torch.manual_seed(102)
+class PolicyNN(nn.Module):
+# Try separating out mu and sigma
+    def __init__(self, env, hidden_nodes):
+
+        super().__init__()
+        self.state_size = env.observation_space.shape[0]
+        self.hidden_nodes = hidden_nodes
+        # create parameterized policy
+        self.mu_model = nn.Sequential(nn.Linear(self.state_size, self.hidden_nodes),
+                                          nn.Tanh(),
+                                          nn.Linear(self.hidden_nodes, 1))
+        # from spinningup
+        log_std = -0.5 * np.ones(env.action_space.shape[0], dtype = np.float32)
+        self.log_std = torch.nn.Parameter(torch.as_tensor(log_std))
+    def forward(self, state):
+
+        state_torch = torch.from_numpy(state)
+        state_torch.requires_grad = True
+        mu = self.mu_model(state_torch)
+        sigma = torch.exp(self.log_std)
+
+        return mu, sigma
+
+
 class VPGAgent():
 
-    def __init__(self, env, max_iterations, hidden_nodes, discount_factor, lr):
+    def __init__(self, env, discount_factor):
         """
         max_iterations: int
             Maximum number of times environment should run in an episode
         """
         self.env = env
-        self.state_size = env.observation_space.shape[0]
         self.trajectories = []
         self.rewards = []
-        self.hidden_nodes = hidden_nodes
         self.discount_factor = discount_factor
-        self.lr = lr
         self.logprobs = []
 
-        # create parameterized policy
-        self.policy_model = nn.Sequential(nn.Linear(self.state_size, self.hidden_nodes),
-                                          nn.ReLU(),
-                                          nn.Linear(self.hidden_nodes, 2))
 
-        self.optimizer = torch.optim.Adam(self.policy_model.parameters(), self.lr)
-
-    def get_action(self, state):
+    def get_action(self, state, policy):
         """
         Considers policy to be Gaussian distribution (from Sutton and Barto 2020)
         :param state:
         :return:
         """
-        state_torch = torch.from_numpy(state)
-        actions = self.policy_model(state_torch)
 
-        mu, sigma = actions[0], actions[1].exp()
+        mu, sigma = policy(state)
 
         gaussian = Normal(mu, sigma)
         action_sample = gaussian.sample()
-
-        # clip in case sample is not in action space
-        clipped_action = torch.clip(action_sample, self.env.action_space.low[0], self.env.action_space.high[0]).item()
 
         # track log probabilities
         logprob = gaussian.log_prob(action_sample)
         self.logprobs.append(logprob)
 
-        return np.array([clipped_action])
+        return np.array([action_sample.item()], dtype = 'f4'), mu.item(), sigma.item()
 
     def get_reward(self, t):
         """Calculate reward for an episode at certain time, t"""
 
         G = 0
-        for i, r in enumerate(self.rewards[(t + 1):len(self.rewards)]):
+        for i, r in enumerate(self.rewards[t:len(self.rewards)]):
               G += r * self.discount_factor**i
 
         return G

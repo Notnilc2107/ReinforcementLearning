@@ -1,16 +1,21 @@
 import gym
 from vpg import VPGAgent
+from vpg import PolicyNN
+import torch
 import matplotlib.pyplot as plt
+from environments.simple_right import SimpleRight
 import wandb
+import numpy as np
 
 #wandb.init(project='VPG-test')
 
-env = gym.make('Pendulum-v1', g=9.81)
+#env = gym.make('Pendulum-v1')
 
-observation, info = env.reset(seed=42, return_info=True)
-max_iterations = 200
-episodes = 500
-hidden_nodes = 128
+env = SimpleRight()
+
+max_iterations = 50
+episodes = 800
+hidden_nodes = 16
 discount_factor = 0.9
 learning_rate = 0.01
 
@@ -21,38 +26,88 @@ learning_rate = 0.01
 #     'discount_factor': discount_factor
 # }
 
-agent = VPGAgent(env, max_iterations, hidden_nodes, discount_factor, learning_rate)
-
+agent = VPGAgent(env, discount_factor)
+policy_nn = PolicyNN(env, hidden_nodes)
+optimizer = torch.optim.Adam(policy_nn.parameters(), learning_rate)
+scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.997)
 total_rewards = []
+mu_all = []
+sigma_all = []
+action_all = []
+losses = []
+G_all = []
+logprob_all = []
 
 #training loop
+torch.autograd.set_detect_anomaly(True)
 
 for ep in range(episodes):
+    observation, info = env.reset(return_info=True)
+    mu_ep = []
+    sigma_ep = []
     for i in range(max_iterations):
-        action = agent.get_action(observation)
+        action, mu, sigma = agent.get_action(observation, policy_nn)
+        action_all.append(action[0])
+        mu_ep.append(mu)
+        sigma_ep.append(sigma)
         observation, reward, done, info = env.step(action)
         agent.collect_memory(observation, reward)
-        if done or i == (max_iterations - 1):
-            observation, info = env.reset(return_info= True)
+        if done:
+            break
 
-    total_rewards.append(sum(agent.rewards))
+    total_rewards.append(sum(agent.rewards)/len(agent.rewards))
+    mu_all.append(sum(mu_ep)/len(mu_ep))
+    sigma_all.append(sum(sigma_ep)/len(sigma_ep))
     #wandb.log({'rewards': sum(agent.rewards)})
     if ep % 25 == 0:
         print('Episode:', ep)
-        print('Collected reward:', sum(agent.rewards))
+        print('Collected avg reward:', total_rewards[-1])
 
     # calculate G for each time step to get policy gradient
-    G = [agent.get_reward(i) for i in range(len(agent.rewards))]
-    loss = [- agent.logprobs[i] * G[i] for i in range(len(agent.rewards))]
-    total_loss = sum(loss)
-    total_loss.backward()
-    agent.optimizer.step()
-    agent.optimizer.zero_grad()
+    G = np.array([agent.get_reward(i) for i in range(len(agent.rewards))])
+    #G = (G - G.mean())/G.std()
 
+    loss = [- agent.logprobs[i] * G[i] for i in range(len(agent.rewards))]
+    G_all.append(G.mean())
+    total_loss = sum(loss)/len(loss)
+    losses.append(total_loss.item())
+    total_loss.backward()
+    #torch.nn.utils.clip_grad_norm_(policy_nn.parameters(), 1)
+    # for p in policy_nn.parameters():
+    #     print(f'Ep {ep}: {p.grad}')
+    optimizer.step()
+    optimizer.zero_grad()
+    scheduler.step()
     agent.reset_memory()
-    env.close()
+
+env.close()
 
 plt.plot(total_rewards)
+plt.title('Cumulative Reward')
+plt.show()
+
+plt.plot(mu_all)
+plt.title('Mu')
+plt.show()
+
+plt.plot(sigma_all)
+plt.title('Sigma')
+plt.show()
+
+plt.plot(action_all)
+plt.title('Action')
+plt.show()
+
+plt.plot(losses)
+plt.title('Total Losses')
+plt.show()
+
+plt.plot(G_all)
+plt.title('Average G')
+plt.show()
+
+plt.plot(logprob_all)
+plt.title('Average logprob')
 plt.show()
 
 ## Next steps
