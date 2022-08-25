@@ -1,5 +1,5 @@
 # A very simple environment where you get higher reward when you choose a higher positive number
-# Caps at 100
+# The state is updated based on the action and is capped at 10. 
 
 import gym
 from gym import spaces
