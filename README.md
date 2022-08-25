@@ -1,6 +1,6 @@
 # ReinforcementLearning
 
-- Tried to implement the simplest Vanilla Policy Gradient based on Ch.13 of Sutton and Barto and OpenAI's Spinning Up documentation. 
+- Tried to implement the simplest Vanilla Policy Gradient for a continuous action and state space based on Ch.13 of Sutton and Barto and OpenAI's Spinning Up documentation. 
   - Tested this on `Pendulum-v1` OpenAI Gym environment but the agent couldn't learn to increase reward. 
   - I thought, maybe this simple VPG isn't powerful enough to solve the Pendulum environment. So I created a very simple environment where you choose a number between 0 and 10 (continuous) and you get the reward equivalent to the value chosen but got this:
   
