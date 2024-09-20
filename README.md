@@ -1,20 +1,13 @@
 # ReinforcementLearning
 
-- Tried to implement the simplest Vanilla Policy Gradient for a continuous action and state space based on Ch.13 of Sutton and Barto and OpenAI's Spinning Up documentation. 
-  - Tested this on `Pendulum-v1` OpenAI Gym environment but the agent couldn't learn to increase reward. 
-  - I thought, maybe this simple VPG isn't powerful enough to solve the Pendulum environment. So I created a very simple environment where you choose a number between 0 and 10 (continuous) and you get the reward equivalent to the value chosen but got this:
-  
-  ![image](https://user-images.githubusercontent.com/96712795/186735196-701d0618-0a2d-4629-8fb2-55bdff66f081.png)
+- Implemented the simplest Vanilla Policy Gradient for a continuous action space based on OpenAI's Spinning Up documentation. 
+  - Implemented it without pytorch/tensorflow because I wanted to know what was going on under the hood. Since I'd be calculating the policy gradient symbollically, I used and updated the simple_right.py environment. The simple_right.py environment just takes in a number as an action and spits out a reward. The reward is equal to the action's negative distance from the number 5 (e.g. distance between 6 and 5 is 1, so reward is -1. same with 4.).
+  - The code is kinda messy. Lots of useless comments.
+  - Calculations to get the policy gradient:
+![image](https://github.com/user-attachments/assets/949ecce1-be88-446a-8531-15b70c4fed03)
 
-That looks okay, except that I would have expected it to plateau at 10 instead of around 5. This requires further debugging, but I'm going to put this on hold for now and pause work. 
 
-Next directions I would go in if I am to continue this: 
+Exercise for any beginners looking at this is to try a more complex policy. I initially had mu=b0 + b1s but it turns out that leads to NaN values. Try to explain why.
 
-- Possibly do an optimal learning rate search to check if the plateau is caused by faulty algorithm rather than just a bad learning rate
-- Create a simpler environment where there is no observation 
-  - This [blog post](https://andyljones.com/posts/rl-debugging.html) on debugging RL was very informational and also suggested the above. 
-- The simple environment shouldn't need a neural network, so also try taking that out 
-- Create more unit tests 
-- Run Spinning Up's VPG implementation on the `Pendulum-v1` environment 
 
- 
+Keywords: Vanilla Policy Gradient, VPG, REINFORCE algorithm, simplest gradient policy, no baseline, symbollic differentiation, analytical differentiation, how to compute policy gradient,
