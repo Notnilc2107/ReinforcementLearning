@@ -7,7 +7,7 @@
 ![image](https://github.com/user-attachments/assets/949ecce1-be88-446a-8531-15b70c4fed03)
 
 
-Exercise for any beginners looking at this is to try a more complex policy. I initially had mu=b0 + b1s but it turns out that leads to NaN values. Try to explain why.
+Exercise for any beginners looking at this is to try a more complex policy. I initially had mu=b0 + b1s but it turns out that leads to NaN values. Try to explain why. Let me know if you do cus idk why.
 
 
 Keywords: Vanilla Policy Gradient, VPG, REINFORCE algorithm, simplest gradient policy, no baseline, symbollic differentiation, analytical differentiation, how to compute policy gradient, reinforcement learning no neural network, reinforcement learning without neural network,
