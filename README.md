@@ -5,7 +5,7 @@
   - The code is kinda messy. Lots of useless comments.
   - Calculations to get the policy gradient:
 ![image](https://github.com/user-attachments/assets/949ecce1-be88-446a-8531-15b70c4fed03)
-  - The highest reward is when action=5, so Beta_0 should approach 5.
+  - The highest reward is when action=5, so Beta_0 should approach 5 (which it does).
 
 Exercise for any beginners looking at this is to try a more complex policy. I initially had mu=b0 + b1s but it turns out that leads to NaN values. Try to explain why. Let me know if you do cus idk why.
 
