@@ -10,4 +10,4 @@
 Exercise for any beginners looking at this is to try a more complex policy. I initially had mu=b0 + b1s but it turns out that leads to NaN values. Try to explain why.
 
 
-Keywords: Vanilla Policy Gradient, VPG, REINFORCE algorithm, simplest gradient policy, no baseline, symbollic differentiation, analytical differentiation, how to compute policy gradient,
+Keywords: Vanilla Policy Gradient, VPG, REINFORCE algorithm, simplest gradient policy, no baseline, symbollic differentiation, analytical differentiation, how to compute policy gradient, reinforcement learning no neural network, reinforcement learning without neural network,
